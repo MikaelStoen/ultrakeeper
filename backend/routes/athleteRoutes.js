@@ -21,6 +21,27 @@ router.get('/', async (req, res) => {
   res.json(enriched);
 });
 
+router.post('/register', async (req, res) => {
+  const { name, rfid } = req.body;
+
+  if (!name || !rfid) {
+    return res.status(400).json({ error: 'Name and RFID are required' });
+  }
+
+  try {
+    const athlete = new Athlete({
+      name,
+      rfid,
+      status: 'active',
+    });
+    await athlete.save();
+    res.status(201).json(athlete);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to register athlete' });
+  }
+});
+
+
 router.patch('/:id/forfeit', async (req, res) => {
     const athlete = await Athlete.findById(req.params.id);
     if (!athlete) return res.status(404).json({ error: 'Athlete not found' });

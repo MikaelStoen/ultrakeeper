@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ultrakeeper
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4173:4173"
+    depends_on:
+      - backend
+
+  backup:
+    image: mongo
+    depends_on:
+      - mongo
+    volumes:
+      - mongo-data:/data/db
+      - ./backups:/backup
+    entrypoint: >
+      bash -c "
+        i=0;
+        while true; do
+          slot=slot$((i % 5)) && \
+          rm -rf /backup/$slot && \
+          mkdir -p /backup/$slot && \
+          mongodump --host mongo --out=/backup/$slot && \
+          echo Backup saved to slot $slot && \
+          i=$((i+1));
+          sleep 900;
+        done
+      "
+
+volumes:
+  mongo-data:
