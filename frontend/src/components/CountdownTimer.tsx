@@ -6,13 +6,12 @@ interface CountdownTimerProps {
   lapIntervalMinutes?: number;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ lapIntervalMinutes = 10 }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = () => {
   const calculateRemaining = (): string => {
-    const now = Date.now();
-    const intervalMs = lapIntervalMinutes * 60 * 1000;
-    const elapsedInLap = now % intervalMs;
-    const msUntilNextLap = intervalMs - elapsedInLap;
-    const totalSeconds = Math.floor(msUntilNextLap / 1000);
+    const now = new Date();
+    const msUntilNextHour =
+      (60 - now.getMinutes()) * 60 * 1000 - now.getSeconds() * 1000 - now.getMilliseconds();
+    const totalSeconds = Math.floor(msUntilNextHour / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds
@@ -27,7 +26,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ lapIntervalMinutes = 10
       setTimeLeft(calculateRemaining());
     }, 1000);
     return () => clearInterval(timer);
-  }, [lapIntervalMinutes]);
+  }, []);
 
   return (
     <div style={{ width: '100%', textAlign: 'center', padding: '1rem' }}>

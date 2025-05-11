@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios, { isAxiosError } from 'axios';
+import AdminPanel from '../components/AdminPanel';
 
 type Athlete = {
   _id: string;
@@ -52,7 +53,15 @@ function ManualEntryPage() {
   return (
     <div>
       <h2>Manual Lap Entry</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', maxWidth: '300px', gap: '1rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          maxWidth: '300px',
+          gap: '1rem',
+        }}
+      >
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
@@ -76,6 +85,11 @@ function ManualEntryPage() {
         <button type="submit">Add Lap</button>
       </form>
       {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+
+      {/* Admin options tucked into the Manual Entry page */}
+      <div style={{ marginTop: '2rem' }}>
+        <AdminPanel />
+      </div>
     </div>
   );
 }
