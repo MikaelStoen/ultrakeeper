@@ -61,7 +61,7 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
               { to: '/', label: 'Dashboard' },
               { to: '/register', label: 'Register' },
               { to: '/manual', label: 'Manual Entry' },
-              { to: '/scan', label: 'Scan Mode' },
+              // { to: '/scan', label: 'Scan Mode' },
             ].map(({ to, label }) => (
               <Link key={to} to={to} style={linkStyle}>
                 {label}

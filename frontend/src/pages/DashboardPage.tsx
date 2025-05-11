@@ -1,4 +1,3 @@
-// src/pages/DashboardPage.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -13,6 +12,16 @@ function formatDuration(ms: number): string {
     .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
+// Formats a timestamp as HH:MM:SS of time-of-day
+function formatTimeOfDay(timestamp: string): string {
+  const ts = new Date(timestamp);
+  const hours = ts.getHours().toString().padStart(2, '0');
+  const minutes = ts.getMinutes().toString().padStart(2, '0');
+  const seconds = ts.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+// Legacy lap formatting: mm:ss since top of hour
 function formatLapTime(timestamp: string): string {
   const ts = new Date(timestamp);
   const hourStart = new Date(ts);
@@ -38,12 +47,12 @@ type Lap = {
 type Athlete = {
   _id: string;
   name: string;
-  rfid: string;            // kept in type but not rendered
+  rfid: string;
   status: string;
   lapCount: number;
   lastLapTime?: string;
   totalTime: number;
-  laps: Lap[];             // full lap list for “Info”
+  laps: Lap[];
 };
 
 // ---- Component ----
@@ -65,21 +74,17 @@ function DashboardPage() {
             ? String(lap.athleteId._id || lap.athleteId)
             : String(lap.athleteId);
 
-        // all laps for this athlete
         const laps: Lap[] = lapRes.data.filter(
           (l: any) => getLapAthleteId(l) === athleteIdStr
         );
 
-        // sort ascending by timestamp for display
         const sortedLapsAsc = [...laps].sort(
           (a: Lap, b: Lap) =>
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
 
-        // most recent lap
         const lastLap = sortedLapsAsc[sortedLapsAsc.length - 1];
 
-        // total elapsed ms
         const totalTime = laps.reduce((sum: number, lap: Lap) => {
           const ts = new Date(lap.timestamp);
           if (isNaN(ts.getTime())) return sum;
@@ -97,7 +102,6 @@ function DashboardPage() {
         };
       });
 
-      // sort leaderboard
       const sorted = enriched.sort((a, b) => {
         if (b.lapCount !== a.lapCount) return b.lapCount - a.lapCount;
         return a.totalTime - b.totalTime;
@@ -149,7 +153,6 @@ function DashboardPage() {
             <tbody>
               {athletes.map((athlete, idx) => (
                 <React.Fragment key={athlete._id}>
-                  {/* Main row */}
                   <tr
                     className={`border-t ${
                       athlete.status === 'forfeited' ? 'bg-red-50' : 'bg-green-50'
@@ -165,7 +168,7 @@ function DashboardPage() {
                     </td>
                     <td className="p-3">
                       {athlete.lastLapTime
-                        ? formatLapTime(athlete.lastLapTime)
+                        ? formatTimeOfDay(athlete.lastLapTime)
                         : '-'}
                     </td>
                     <td className="p-3">
@@ -189,7 +192,6 @@ function DashboardPage() {
                     </td>
                   </tr>
 
-                  {/* Expanded laps */}
                   {openAthleteId === athlete._id && (
                     <tr>
                       <td colSpan={7} className="p-3 bg-gray-50">
@@ -206,7 +208,7 @@ function DashboardPage() {
                                 <tr key={lap._id} className="border-t">
                                   <td className="p-2">{i + 1}</td>
                                   <td className="p-2">
-                                    {formatLapTime(lap.timestamp)}
+                                    {formatTimeOfDay(lap.timestamp)}
                                   </td>
                                 </tr>
                               ))}

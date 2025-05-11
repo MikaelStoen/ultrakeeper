@@ -64,6 +64,7 @@ router.post('/scan', async (req, res) => {
     now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0
   );
 
+  
   // Enforce 10-minute grace period
   if (now - lapStart < TEN_MINUTES_MS) {
     return res.status(400).json({ error: 'Too early: wait at least 10 minutes into the lap to scan' });
@@ -77,6 +78,7 @@ router.post('/scan', async (req, res) => {
   if (existing) {
     return res.status(400).json({ error: 'Lap already recorded for this cycle' });
   }
+
 
   // Save the scan lap
   const lap = new Lap({ athleteId: athlete._id, timestamp: now, source: 'scan' });

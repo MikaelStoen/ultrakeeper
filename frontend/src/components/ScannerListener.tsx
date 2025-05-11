@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 
-const SCAN_TIMEOUT = 100;
+const SCAN_TIMEOUT = 100; // ms to clear buffer between scans
 
 function ScannerListener() {
   const [banner, setBanner] = useState<{ message: string; success: boolean } | null>(null);
@@ -12,21 +12,20 @@ function ScannerListener() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const now = Date.now();
 
+      // ENTER signals end of RFID string
       if (e.key === 'Enter') {
         const scannedRFID = bufferRef.current.trim();
         bufferRef.current = '';
-        if (scannedRFID) {
-          handleScan(scannedRFID);
-        }
+        if (scannedRFID) handleScan(scannedRFID);
         return;
       }
-
+      // only accept single-character keys
       if (e.key.length !== 1) return;
 
+      // if we paused longer than SCAN_TIMEOUT, reset buffer
       if (now - lastKeyTimeRef.current > SCAN_TIMEOUT) {
         bufferRef.current = '';
       }
-
       lastKeyTimeRef.current = now;
       bufferRef.current += e.key;
     };
@@ -37,22 +36,20 @@ function ScannerListener() {
 
   const handleScan = async (rfid: string) => {
     try {
-      const res = await axios.get('http://localhost:5000/api/athletes');
-      const athlete = res.data.find((a: any) => a.rfid === rfid);
-
-      if (!athlete) {
-        showBanner(`❌ Unknown RFID: ${rfid}`, false);
-        return;
-      }
-
-      await axios.post('http://localhost:5000/api/laps', {
-        athleteId: athlete._id,
-        source: 'scan',
-      });
-
-      showBanner(`✅ Lap registered for ${athlete.name}`, true);
-    } catch (err) {
-      showBanner('❌ Scan failed', false);
+      // POST to the scan-specific endpoint
+      const res = await axios.post(
+        'http://localhost:5000/api/laps/scan',
+        { rfid },
+      );
+      // backend returns { message: `Lap recorded for ${name}` }
+      showBanner(res.data.message, true);
+    } catch (err: any) {
+      // display the server’s error (e.g. “Lap already recorded…” or “Too early…”)
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        '❌ Scan failed';
+      showBanner(`❌ ${msg}`, false);
     }
   };
 

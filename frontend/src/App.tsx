@@ -19,7 +19,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/manual" element={<ManualEntryPage />} />
-          <Route path="/scan" element={<ScanPage />} />
+          {/* <Route path="/scan" element={<ScanPage />} /> */}
         </Routes>
       </HeaderWithCountdown>
     </Router>
