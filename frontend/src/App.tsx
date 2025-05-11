@@ -1,30 +1,27 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import ManualEntryPage from './pages/ManualEntryPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HeaderWithCountdown from './components/HeaderWithCountdown';
 import ScannerListener from './components/ScannerListener';
+import DashboardPage from './pages/DashboardPage';
+import RegisterPage from './pages/RegisterPage';
+import ManualEntryPage from './pages/ManualEntryPage';
 import ScanPage from './pages/ScanPage';
 
 function App() {
   return (
     <Router>
-      {/* <ScannerListener />  */}
+      {/* Global scanner listener */}
+      <ScannerListener />
 
-      <div style={{ padding: '1rem' }}>
-        <nav style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-          <Link to="/">Dashboard</Link>
-          <Link to="/register">Register</Link>
-          <Link to="/manual">Manual Entry</Link>
-          <Link to="/scan">Scan</Link>
-        </nav>
+      {/* Layout wrapper includes header, content, and bottom countdown */}
+      <HeaderWithCountdown>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/manual" element={<ManualEntryPage />} />
           <Route path="/scan" element={<ScanPage />} />
         </Routes>
-      </div>
+      </HeaderWithCountdown>
     </Router>
   );
 }

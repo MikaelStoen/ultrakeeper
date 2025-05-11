@@ -2,17 +2,24 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 
 const SCAN_TIMEOUT = 100;
-const SCAN_COMPLETE_DELAY = 200;
 
 function ScannerListener() {
   const [banner, setBanner] = useState<{ message: string; success: boolean } | null>(null);
   const bufferRef = useRef('');
   const lastKeyTimeRef = useRef(0);
-  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const now = Date.now();
+
+      if (e.key === 'Enter') {
+        const scannedRFID = bufferRef.current.trim();
+        bufferRef.current = '';
+        if (scannedRFID) {
+          handleScan(scannedRFID);
+        }
+        return;
+      }
 
       if (e.key.length !== 1) return;
 
@@ -22,18 +29,6 @@ function ScannerListener() {
 
       lastKeyTimeRef.current = now;
       bufferRef.current += e.key;
-
-      if (scanTimerRef.current) {
-        clearTimeout(scanTimerRef.current);
-      }
-
-      scanTimerRef.current = setTimeout(() => {
-        const scannedRFID = bufferRef.current.trim();
-        bufferRef.current = '';
-        if (scannedRFID) {
-          handleScan(scannedRFID);
-        }
-      }, SCAN_COMPLETE_DELAY);
     };
 
     window.addEventListener('keydown', handleKeyDown);
