@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -21,23 +22,8 @@ function formatTimeOfDay(timestamp: string): string {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-// Legacy lap formatting: mm:ss since top of hour
-function formatLapTime(timestamp: string): string {
-  const ts = new Date(timestamp);
-  const hourStart = new Date(ts);
-  hourStart.setMinutes(0, 0, 0);
-  const ms = ts.getTime() - hourStart.getTime();
-
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${minutes.toString().padStart(2, '0')}:${seconds
-    .toString()
-    .padStart(2, '0')}`;
-}
-
 // ---- Types ----
+
 type Lap = {
   _id: string;
   athleteId: string;
@@ -56,6 +42,7 @@ type Athlete = {
 };
 
 // ---- Component ----
+
 function DashboardPage() {
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,6 +117,20 @@ function DashboardPage() {
     setOpenAthleteId(prev => (prev === id ? null : id));
   };
 
+  const handleDeleteLap = async (lapId: string) => {
+    const token = window.prompt('Admin password')?.trim();
+    if (!token) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/laps/${lapId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchAthletes();
+    } catch (err: any) {
+      console.error('Failed to delete lap:', err);
+      alert('Delete failed: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
@@ -156,8 +157,7 @@ function DashboardPage() {
                   <tr
                     className={`border-t ${
                       athlete.status === 'forfeited' ? 'bg-red-50' : 'bg-green-50'
-                    }`}
-                  >
+                    }`}>
                     <td className="p-3">{idx + 1}</td>
                     <td className="p-3">{athlete.name}</td>
                     <td className="p-3">{athlete.lapCount}</td>
@@ -179,14 +179,12 @@ function DashboardPage() {
                     <td className="p-3">
                       <button
                         className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded mr-2"
-                        onClick={() => toggleInfo(athlete._id)}
-                      >
+                        onClick={() => toggleInfo(athlete._id)}>
                         {openAthleteId === athlete._id ? 'Hide Info' : 'Info'}
                       </button>
                       <button
                         className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded"
-                        onClick={() => handleForfeit(athlete._id)}
-                      >
+                        onClick={() => handleForfeit(athlete._id)}>
                         {athlete.status === 'active' ? 'Forfeit' : 'Unforfeit'}
                       </button>
                     </td>
@@ -201,6 +199,7 @@ function DashboardPage() {
                               <tr>
                                 <th className="p-2 font-semibold">Lap #</th>
                                 <th className="p-2 font-semibold">Time</th>
+                                <th className="p-2 font-semibold">Action</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -209,6 +208,14 @@ function DashboardPage() {
                                   <td className="p-2">{i + 1}</td>
                                   <td className="p-2">
                                     {formatTimeOfDay(lap.timestamp)}
+                                  </td>
+                                  <td className="p-2">
+                                    <button
+                                      onClick={() => handleDeleteLap(lap._id)}
+                                      className="text-red-600 hover:text-red-800 text-xs"
+                                    >
+                                      Delete
+                                    </button>
                                   </td>
                                 </tr>
                               ))}

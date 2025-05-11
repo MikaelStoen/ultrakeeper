@@ -64,7 +64,6 @@ router.post('/scan', async (req, res) => {
     now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0
   );
 
-  
   // Enforce 10-minute grace period
   if (now - lapStart < TEN_MINUTES_MS) {
     return res.status(400).json({ error: 'Too early: wait at least 10 minutes into the lap to scan' });
@@ -78,7 +77,6 @@ router.post('/scan', async (req, res) => {
   if (existing) {
     return res.status(400).json({ error: 'Lap already recorded for this cycle' });
   }
-
 
   // Save the scan lap
   const lap = new Lap({ athleteId: athlete._id, timestamp: now, source: 'scan' });
@@ -102,6 +100,25 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('Failed to fetch laps:', err);
     return res.status(500).json({ error: 'Failed to fetch laps' });
+  }
+});
+
+/**
+ * DELETE /api/laps/:id
+ * Admin-only: remove a specific lap by its Mongo _id
+ */
+router.delete('/:id', async (req, res) => {
+  const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+  if (req.headers.authorization !== `Bearer ${ADMIN_TOKEN}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const lap = await Lap.findByIdAndDelete(req.params.id);
+    if (!lap) return res.status(404).json({ error: 'Lap not found' });
+    return res.sendStatus(204);
+  } catch (err) {
+    console.error('Failed to delete lap:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
