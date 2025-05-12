@@ -4,6 +4,11 @@ UltraKeeper is a full-stack lap registration system built for backyard ultra eve
 
 ---
 
+## Additions:
+Docker for simple setup
+public overview page for athletes, hosted online
+Possibly halfway recording? 
+
 ## 🧰 Requirements (One-Time Setup)
 
 ### Windows & macOS
