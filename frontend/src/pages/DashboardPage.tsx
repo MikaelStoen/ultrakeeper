@@ -22,6 +22,23 @@ function formatTimeOfDay(timestamp: string): string {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+function formatLapTime(timestamp: string): string {
+  const ts = new Date(timestamp);
+  const hourStart = new Date(ts);
+  hourStart.setMinutes(0, 0, 0, 0);
+  const msSinceHour = ts.getTime() - hourStart.getTime();
+  
+  const totalSeconds = Math.floor(msSinceHour / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  
+  return `${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`;
+}
+
+
+
 // ---- Types ----
 
 type Lap = {
@@ -168,7 +185,7 @@ function DashboardPage() {
                     </td>
                     <td className="p-3">
                       {athlete.lastLapTime
-                        ? formatTimeOfDay(athlete.lastLapTime)
+                        ? formatLapTime(athlete.lastLapTime)
                         : '-'}
                     </td>
                     <td className="p-3">
