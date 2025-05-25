@@ -77,6 +77,7 @@ function ManualEntryPage() {
 
         <input
           type="time"
+          step="1"
           value={timestamp}
           onChange={(e) => setTimestamp(e.target.value)}
           required
