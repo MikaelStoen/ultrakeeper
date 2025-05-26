@@ -1,17 +1,22 @@
 // src/components/HeaderWithCountdown.tsx
-import React from 'react';
+import React, { createContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import CountdownTimer from './CountdownTimer';
 import logo from '../assets/example.png';
+
+// Create context
+export const ScanModeContext = createContext<'lap' | 'checkpoint'>('lap');
 
 interface HeaderProps {
   children: ReactNode;
 }
 
 const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
+  const [mode, setMode] = useState<'lap' | 'checkpoint'>('lap');
+
   return (
-    <>
+    <ScanModeContext.Provider value={mode}>
       <header
         style={{
           position: 'sticky',
@@ -38,7 +43,7 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
               src={logo}
               alt="Lyder Ultra logo"
               style={{
-                height: '2.5rem',       // adjust as needed
+                height: '2.5rem',
                 width: 'auto',
                 marginRight: '0.75rem',
               }}
@@ -55,19 +60,33 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
             </span>
           </div>
 
-          {/* Navigation Links */}
-          <nav style={{ display: 'flex', gap: '1rem' }}>
-            {[
-              { to: '/', label: 'Dashboard' },
-              { to: '/register', label: 'Register' },
-              { to: '/manual', label: 'Manual Entry' },
-              // { to: '/scan', label: 'Scan Mode' },
-            ].map(({ to, label }) => (
-              <Link key={to} to={to} style={linkStyle}>
-                {label}
-              </Link>
-            ))}
-          </nav>
+          {/* Navigation Links + Toggle */}
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <nav style={{ display: 'flex', gap: '1rem' }}>
+              {[
+                { to: '/', label: 'Dashboard' },
+                { to: '/register', label: 'Register' },
+                { to: '/manual', label: 'Manual Entry' },
+              ].map(({ to, label }) => (
+                <Link key={to} to={to} style={linkStyle}>
+                  {label}
+                </Link>
+              ))}
+            </nav>
+            <button
+              onClick={() => setMode(prev => (prev === 'lap' ? 'checkpoint' : 'lap'))}
+              style={{
+                fontSize: '0.85rem',
+                padding: '0.4rem 0.8rem',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                background: '#f9f9f9',
+                cursor: 'pointer',
+              }}
+            >
+              Mode: {mode === 'lap' ? '🟢 Lap' : '🟡 Checkpoint'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -95,7 +114,7 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
       >
         <CountdownTimer lapIntervalMinutes={10} />
       </footer>
-    </>
+    </ScanModeContext.Provider>
   );
 };
 

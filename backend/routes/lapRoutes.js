@@ -64,46 +64,47 @@ router.post('/', async (req, res) => {
  * - Athlete must exist
  */
 router.post('/scan', async (req, res) => {
-  const { rfid } = req.body;
+  const { rfid, station = 'finish' } = req.body;
   if (!rfid) return res.status(400).json({ error: 'RFID missing' });
+  if (!['finish', 'checkpoint'].includes(station))
+    return res.status(400).json({ error: 'Invalid station type' });
 
   const athlete = await Athlete.findOne({ rfid });
   if (!athlete) return res.status(404).json({ error: 'Athlete not found' });
 
   const now = new Date();
-  const lapStart = new Date(
-    now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0
-  );
+  const lapStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0);
 
-  if (now - lapStart < TEN_MINUTES_MS) {
+  // Enforce 10-minute grace period for finish laps only
+  if (station === 'finish' && now - lapStart < TEN_MINUTES_MS) {
     return res.status(400).json({ error: 'Too early: wait at least 10 minutes into the lap to scan' });
   }
 
+  // Prevent multiple scans of same type per hour
   const existing = await Lap.findOne({
     athleteId: athlete._id,
+    source: station,
     timestamp: { $gte: lapStart }
   });
   if (existing) {
-    return res.status(400).json({ error: 'Lap already recorded this hour' });
+    return res.status(400).json({ error: `${station === 'checkpoint' ? 'Checkpoint' : 'Lap'} already recorded this hour` });
   }
 
-  const lap = new Lap({ athleteId: athlete._id, timestamp: now, source: 'scan' });
-
+  const lap = new Lap({ athleteId: athlete._id, timestamp: now, source: station });
   try {
     await lap.save();
 
-    // Calculate lap time since top of the hour
     const elapsedMs = now.getTime() - lapStart.getTime();
     const totalSeconds = Math.floor(elapsedMs / 1000);
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
     const seconds = (totalSeconds % 60).toString().padStart(2, '0');
 
     return res.status(201).json({
-      message: `Lap recorded for ${athlete.name}, lap time: ${minutes}:${seconds}`
+      message: `${station === 'checkpoint' ? 'Checkpoint' : 'Lap'} recorded for ${athlete.name}, time: ${minutes}:${seconds}`
     });
   } catch (err) {
-    console.error('Scan lap save failed:', err);
-    return res.status(500).json({ error: 'Failed to save scan lap' });
+    console.error('Scan save failed:', err);
+    return res.status(500).json({ error: 'Failed to save scan' });
   }
 });
 
