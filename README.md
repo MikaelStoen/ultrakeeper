@@ -1,139 +1,136 @@
 # UltraKeeper - Backyard Ultra Lap Tracker
 
-UltraKeeper is a full-stack lap registration system built for backyard ultra events. It uses RFID-based lap scanning, athlete tracking, manual overrides, and a web-based dashboard.
+UltraKeeper is a complete lap registration system for backyard ultra races. It lets you scan laps using RFID, register athletes, monitor progress on a live dashboard, and recover from failures using automatic backups.
 
 ---
 
-## Additions:
-Docker for simple setup
-public overview page for athletes, hosted online
-Possibly halfway recording? 
+## ✨ Features
 
-## 🧰 Requirements (One-Time Setup)
-
-### Windows & macOS
-
-* **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Required to run the system)
+* RFID-based lap scanning
+* Manual lap and checkpoint entry
+* Live admin dashboard
+* Auto-forfeit detection
+* Hourly backups and simple restore
+* Fully containerized with Docker
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Setup Instructions (Windows/macOS)
 
-### 1. Clone or unzip the UltraKeeper folder
+### 1. Install Docker Desktop
 
-Place it somewhere on your computer, e.g.:
+* Download: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
+* During installation, check the option to **"Use Windows containers"** if asked (not required on macOS).
 
+---
+
+### 2. Download UltraKeeper
+
+Option A: **Download ZIP**
+
+* Go to: [https://github.com/MikaelStoen/ultrakeeper](https://github.com/MikaelStoen/ultrakeeper)
+* Click **"Code" > "Download ZIP"**, then unzip it somewhere (e.g. `Documents/ultrakeeper`)
+
+Option B: **Use Git (for developers)**
+
+```bash
+git clone https://github.com/MikaelStoen/ultrakeeper.git
+cd ultrakeeper
 ```
-C:\Users\YourName\Documents\ultrakeeper
-```
 
-### 2. Open a terminal
+---
 
-#### Windows:
+### 3. Start the App
 
-* Press `Win + R`, type `powershell`, hit Enter
-* Run:
+#### Windows
+
+1. Press `Win + R`, type `powershell`, hit Enter
+2. Run:
 
 ```powershell
 cd "C:\Users\YourName\Documents\ultrakeeper"
-docker-compose up --build
+docker compose up --build
 ```
 
-#### macOS:
+#### macOS
 
-* Open **Terminal**
-* Run:
+1. Open Terminal
+2. Run:
 
 ```bash
 cd ~/Documents/ultrakeeper
-docker-compose up --build
-```
-
-### 3. Open the app
-
-Go to:
-
-```
-http://localhost:4173
-```
-
-This is the web interface for:
-
-* ✅ Registering athletes
-* 📊 Viewing dashboards
-* 🛠 Manually editing lap records
-
----
-
-## 🔁 Daily Use
-
-Once built, you only need to run:
-
-```bash
-docker-compose up
-```
-
-To stop the system:
-
-```bash
-CTRL+C
-```
-
-or in another terminal:
-
-```bash
-docker-compose down
+docker compose up --build
 ```
 
 ---
 
-## 💾 Restoring a Backup
+### 4. Open the Web App
 
-Backups are automatically created every 15 minutes and rotated across 5 folders (`slot0` to `slot4`).
+Once running, visit:
 
-### To restore the most recent backup:
+```
+http://localhost:3000
+```
 
-#### Windows (PowerShell):
+---
+
+## 🔄 Daily Use
+
+To start the system after first setup:
+
+```bash
+docker compose up
+```
+
+To stop it:
+
+* Press `CTRL+C`, or in a new terminal run:
+
+```bash
+docker compose down
+```
+
+---
+
+## 📂 Restore from Backup
+
+Backups are created every 15 minutes and stored in rotating folders (`slot0` to `slot4`).
+
+### Windows
 
 ```powershell
-.
-estore.ps1
+./restore.ps1           # restore latest
+./restore.ps1 slot2     # restore specific slot
 ```
 
-#### macOS/Linux:
+### macOS/Linux
 
 ```bash
-./restore.sh
-```
-
-### To restore a specific slot (e.g. slot2):
-
-```powershell
-.
-estore.ps1 slot2
-```
-
-```bash
-./restore.sh slot2
+./restore.sh            # restore latest
+./restore.sh slot2      # restore specific slot
 ```
 
 ---
 
-## 🔒 Notes
+## 🔐 Notes
 
-* Data is stored in a local Docker volume (`mongo-data`) and survives reboots.
-* Backups are kept in `./backups` and auto-rotated.
+* Admin functions (e.g. delete lap) require a password prompt.
+* Password is set in `.env` as `ADMIN_TOKEN`
+* Data is stored persistently in a Docker volume.
+* All containers can be rebuilt using `docker compose up --build`
 
 ---
 
 ## 📦 Tech Stack
 
-* React + Vite + TypeScript (Frontend)
-* Node.js + Express + MongoDB (Backend)
-* Docker + Docker Compose (Deployment)
+* Frontend: React + Vite + Tailwind (served with NGINX)
+* Backend: Node.js + Express
+* Database: MongoDB
+* Deployment: Docker + Docker Compose
 
 ---
 
-## 📞 Support
+## 🚑 Support
 
-Need help setting it up? Contact the UltraKeeper admin or refer to this guide.
+For any help, reach out via the GitHub repo:
+[https://github.com/MikaelStoen/ultrakeeper](https://github.com/MikaelStoen/ultrakeeper)

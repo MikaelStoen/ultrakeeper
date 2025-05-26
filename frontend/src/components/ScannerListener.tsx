@@ -1,28 +1,26 @@
 import { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const SCAN_TIMEOUT = 100; // ms to clear buffer between scans
 
 function ScannerListener() {
   const [banner, setBanner] = useState<{ message: string; success: boolean } | null>(null);
-  const bufferRef = useRef('');
-  const lastKeyTimeRef = useRef(0);
+  const bufferRef = useRef<string>('');
+  const lastKeyTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const now = Date.now();
 
-      // ENTER signals end of RFID string
       if (e.key === 'Enter') {
         const scannedRFID = bufferRef.current.trim();
         bufferRef.current = '';
         if (scannedRFID) handleScan(scannedRFID);
         return;
       }
-      // only accept single-character keys
+
       if (e.key.length !== 1) return;
 
-      // if we paused longer than SCAN_TIMEOUT, reset buffer
       if (now - lastKeyTimeRef.current > SCAN_TIMEOUT) {
         bufferRef.current = '';
       }
@@ -36,15 +34,13 @@ function ScannerListener() {
 
   const handleScan = async (rfid: string) => {
     try {
-      // POST to the scan-specific endpoint
-      const res = await axios.post(
+      const res = await axios.post<{ message: string }>(
         'http://localhost:5000/api/laps/scan',
-        { rfid },
+        { rfid }
       );
-      // backend returns { message: `Lap recorded for ${name}` }
       showBanner(res.data.message, true);
-    } catch (err: any) {
-      // display the server’s error (e.g. “Lap already recorded…” or “Too early…”)
+    } catch (error) {
+      const err = error as AxiosError<{ error?: string; message?: string }>;
       const msg =
         err.response?.data?.error ||
         err.response?.data?.message ||

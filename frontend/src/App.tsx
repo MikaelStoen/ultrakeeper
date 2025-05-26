@@ -5,7 +5,6 @@ import ScannerListener from './components/ScannerListener';
 import DashboardPage from './pages/DashboardPage';
 import RegisterPage from './pages/RegisterPage';
 import ManualEntryPage from './pages/ManualEntryPage';
-import ScanPage from './pages/ScanPage';
 
 function App() {
   return (

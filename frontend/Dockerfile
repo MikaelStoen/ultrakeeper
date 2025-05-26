@@ -1,16 +1,13 @@
-# frontend/Dockerfile
-FROM node:18
+# Frontend Dockerfile
+FROM node:18 AS builder
 
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm install
-
 COPY . .
-
 RUN npm run build
 
-# Use a simple HTTP server to serve static files
-RUN npm install -g serve
-EXPOSE 4173
-CMD ["serve", "-s", "dist", "-l", "4173"]
+# Serve with static server
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80

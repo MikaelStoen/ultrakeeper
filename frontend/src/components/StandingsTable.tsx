@@ -7,18 +7,21 @@ type Lap = {
   timestamp: string;
 };
 
-type Athlete = {
+type AthleteRaw = {
   _id: string;
   name: string;
   rfid: string;
   status: string;
+};
+
+type AthleteEnriched = AthleteRaw & {
   lapCount: number;
-  lastLapTime?: string;
+  lastLapTime?: string | null;
   totalTime: number;
 };
 
 function StandingsTable() {
-  const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [athletes, setAthletes] = useState<AthleteEnriched[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -28,20 +31,16 @@ function StandingsTable() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/athletes');
-      const lapRes = await axios.get('http://localhost:5000/api/laps');
+      const res = await axios.get<AthleteRaw[]>('http://localhost:5000/api/athletes');
+      const lapRes = await axios.get<Lap[]>('http://localhost:5000/api/laps');
 
-      const enriched: Athlete[] = res.data.map((a: any) => {
-        const laps: Lap[] = lapRes.data.filter((l: Lap) => String(l.athleteId) === String(a._id));
+      const enriched: AthleteEnriched[] = res.data.map((a) => {
+        const laps = lapRes.data.filter((l) => String(l.athleteId) === String(a._id));
 
-        const lastLap = laps.sort(
-          (a: Lap, b: Lap) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        )[0];
+        const lastLap = laps
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
 
-        const totalTime = laps.reduce((sum: number, lap: Lap) => {
-          return sum + new Date(lap.timestamp).getTime();
-        }, 0);
+        const totalTime = laps.reduce((sum, lap) => sum + new Date(lap.timestamp).getTime(), 0);
 
         return {
           ...a,
@@ -51,10 +50,8 @@ function StandingsTable() {
         };
       });
 
-      const sorted = enriched.sort((a: Athlete, b: Athlete) => {
-        if (b.lapCount !== a.lapCount) {
-          return b.lapCount - a.lapCount;
-        }
+      const sorted = enriched.sort((a, b) => {
+        if (b.lapCount !== a.lapCount) return b.lapCount - a.lapCount;
         return a.totalTime - b.totalTime;
       });
 

@@ -38,7 +38,7 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
               src={logo}
               alt="Lyder Ultra logo"
               style={{
-                height: '2.5rem',       // adjust as needed
+                height: '10rem',       // adjust as needed
                 width: 'auto',
                 marginRight: '0.75rem',
               }}
