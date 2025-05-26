@@ -11,6 +11,7 @@ const Athlete       = require('./models/Athlete');
 const Lap           = require('./models/Lap');
 const athleteRoutes = require('./routes/athleteRoutes');
 const lapRoutes     = require('./routes/lapRoutes');
+const checkpointRoutes = require('./routes/checkpointRoutes');
 
 const app = express();
 app.use(cors());
@@ -31,6 +32,8 @@ mongoose
 // ——— Public API routes ———
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/laps',     lapRoutes);
+app.use('/api/checkpoints', checkpointRoutes);
+
 
 // ——— Admin routes ———
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;

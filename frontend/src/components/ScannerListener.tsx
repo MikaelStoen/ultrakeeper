@@ -43,12 +43,16 @@ function ScannerListener() {
 
     try {
       const res = await axios.post(url, { rfid });
-      showBanner(`${mode === 'lap' ? '✅ Lap' : '🏁 Checkpoint'} recorded: ${res.data.message}`, true);
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        '❌ Scan failed';
+      showBanner(`${mode === 'lap' ? '🏁 Finish' : '✅ Checkpoint'} recorded: ${res.data.message}`, true);
+    } catch (err: unknown) {
+      let msg = '❌ Scan failed';
+      if (axios.isAxiosError(err)) {
+        msg =
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          '❌ Scan failed';
+      }
       showBanner(`❌ ${msg}`, false);
     }
   };

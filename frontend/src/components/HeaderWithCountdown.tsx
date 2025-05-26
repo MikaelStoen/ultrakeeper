@@ -84,7 +84,7 @@ const HeaderWithCountdown: React.FC<HeaderProps> = ({ children }) => {
                 cursor: 'pointer',
               }}
             >
-              Mode: {mode === 'lap' ? '🟢 Lap' : '🟡 Checkpoint'}
+              Mode: {mode === 'lap' ? '🏁 Finish' : '✅ Checkpoint'}
             </button>
           </div>
         </div>
