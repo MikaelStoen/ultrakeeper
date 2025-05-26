@@ -52,6 +52,8 @@ router.patch('/:id/forfeit', async (req, res) => {
   
     res.json(athlete);
   });
+
+
   
 
 module.exports = router;

@@ -13,45 +13,38 @@ function formatDuration(ms: number): string {
     .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// Formats a timestamp as HH:MM:SS of time-of-day
 function formatTimeOfDay(timestamp: string): string {
   const ts = new Date(timestamp);
-  const hours = ts.getHours().toString().padStart(2, '0');
-  const minutes = ts.getMinutes().toString().padStart(2, '0');
-  const seconds = ts.getSeconds().toString().padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
+  return ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
 
 function formatLapTime(timestamp: string): string {
   const ts = new Date(timestamp);
   const hourStart = new Date(ts);
-  hourStart.setMinutes(0, 0, 0, 0);
+  hourStart.setMinutes(0, 0, 0);
   const msSinceHour = ts.getTime() - hourStart.getTime();
-  
   const totalSeconds = Math.floor(msSinceHour / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  
-  return `${minutes.toString().padStart(2, '0')}:${seconds
-    .toString()
-    .padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
-
-
 
 // ---- Types ----
 
 type Lap = {
   _id: string;
-  athleteId: string;
+  athleteId: string | { _id: string };
   timestamp: string;
 };
 
-type Athlete = {
+type AthleteBase = {
   _id: string;
   name: string;
   rfid: string;
   status: string;
+};
+
+type Athlete = AthleteBase & {
   lapCount: number;
   lastLapTime?: string;
   totalTime: number;
@@ -67,29 +60,26 @@ function DashboardPage() {
 
   const fetchAthletes = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/athletes');
-      const lapRes = await axios.get('http://localhost:5000/api/laps');
+      const res = await axios.get<AthleteBase[]>('http://localhost:5000/api/athletes');
+      const lapRes = await axios.get<Lap[]>('http://localhost:5000/api/laps');
 
-      const enriched: Athlete[] = res.data.map((a: any) => {
+      const enriched: Athlete[] = res.data.map((a) => {
         const athleteIdStr = String(a._id);
 
-        const getLapAthleteId = (lap: any): string =>
-          typeof lap.athleteId === 'object' && lap.athleteId !== null
-            ? String(lap.athleteId._id || lap.athleteId)
+        const getLapAthleteId = (lap: Lap): string =>
+          typeof lap.athleteId === 'object'
+            ? String((lap.athleteId as { _id: string })._id)
             : String(lap.athleteId);
 
-        const laps: Lap[] = lapRes.data.filter(
-          (l: any) => getLapAthleteId(l) === athleteIdStr
-        );
+        const laps = lapRes.data.filter((l) => getLapAthleteId(l) === athleteIdStr);
 
         const sortedLapsAsc = [...laps].sort(
-          (a: Lap, b: Lap) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
 
         const lastLap = sortedLapsAsc[sortedLapsAsc.length - 1];
 
-        const totalTime = laps.reduce((sum: number, lap: Lap) => {
+        const totalTime = sortedLapsAsc.reduce((sum, lap) => {
           const ts = new Date(lap.timestamp);
           if (isNaN(ts.getTime())) return sum;
           const lapStart = new Date(ts);
@@ -100,7 +90,7 @@ function DashboardPage() {
         return {
           ...a,
           lapCount: laps.length,
-          lastLapTime: lastLap?.timestamp || null,
+          lastLapTime: lastLap?.timestamp,
           totalTime,
           laps: sortedLapsAsc,
         };
@@ -142,9 +132,12 @@ function DashboardPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchAthletes();
-    } catch (err: any) {
-      console.error('Failed to delete lap:', err);
-      alert('Delete failed: ' + (err.response?.data?.error || err.message));
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        alert('Delete failed: ' + (err.response?.data?.error || err.message));
+      } else {
+        alert('Delete failed.');
+      }
     }
   };
 
@@ -174,19 +167,16 @@ function DashboardPage() {
                   <tr
                     className={`border-t ${
                       athlete.status === 'forfeited' ? 'bg-red-50' : 'bg-green-50'
-                    }`}>
+                    }`}
+                  >
                     <td className="p-3">{idx + 1}</td>
                     <td className="p-3">{athlete.name}</td>
                     <td className="p-3">{athlete.lapCount}</td>
                     <td className="p-3">
-                      {athlete.totalTime > 0
-                        ? formatDuration(athlete.totalTime)
-                        : '-'}
+                      {athlete.totalTime > 0 ? formatDuration(athlete.totalTime) : '-'}
                     </td>
                     <td className="p-3">
-                      {athlete.lastLapTime
-                        ? formatLapTime(athlete.lastLapTime)
-                        : '-'}
+                      {athlete.lastLapTime ? formatLapTime(athlete.lastLapTime) : '-'}
                     </td>
                     <td className="p-3">
                       {athlete.status === 'forfeited'
@@ -196,12 +186,14 @@ function DashboardPage() {
                     <td className="p-3">
                       <button
                         className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded mr-2"
-                        onClick={() => toggleInfo(athlete._id)}>
+                        onClick={() => toggleInfo(athlete._id)}
+                      >
                         {openAthleteId === athlete._id ? 'Hide Info' : 'Info'}
                       </button>
                       <button
                         className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded"
-                        onClick={() => handleForfeit(athlete._id)}>
+                        onClick={() => handleForfeit(athlete._id)}
+                      >
                         {athlete.status === 'active' ? 'Forfeit' : 'Unforfeit'}
                       </button>
                     </td>
