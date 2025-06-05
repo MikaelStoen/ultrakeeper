@@ -29,7 +29,10 @@ UltraKeeper is a complete lap registration system for backyard ultra races. It l
 
 Open "Docker desktop"
 
-Open "Powershell" or "Terminal", copy and paste one line below at a time, press enter between.
+
+Open Poweshell by pressing Win+R (🪟+R) and search powershell
+
+Then copy and paste one line below at a time, press enter between.
 
 
 ```bash
