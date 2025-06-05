@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+// ---- Constants ----
+const KM_PER_LAP = 8.06;
+
 // ---- Helpers ----
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -141,9 +144,18 @@ function DashboardPage() {
     }
   };
 
+  const totalKm = athletes.reduce((sum, a) => sum + a.lapCount * KM_PER_LAP, 0); // <-- NEW
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+
+      {/* NEW: Total kilometers run across all athletes */}
+      {!loading && (
+        <p className="mb-4 font-medium">
+          Total kilometers run: <span className="font-semibold">{totalKm.toFixed(2)} km</span>
+        </p>
+      )}
 
       {loading ? (
         <p>Loading...</p>
@@ -155,6 +167,7 @@ function DashboardPage() {
                 <th className="p-3 font-semibold">Place</th>
                 <th className="p-3 font-semibold">Name</th>
                 <th className="p-3 font-semibold">Laps</th>
+                <th className="p-3 font-semibold">Total KM</th> {/* NEW COLUMN */}
                 <th className="p-3 font-semibold">Total Time</th>
                 <th className="p-3 font-semibold">Last Lap</th>
                 <th className="p-3 font-semibold">Status</th>
@@ -172,6 +185,7 @@ function DashboardPage() {
                     <td className="p-3">{idx + 1}</td>
                     <td className="p-3">{athlete.name}</td>
                     <td className="p-3">{athlete.lapCount}</td>
+                    <td className="p-3">{(athlete.lapCount * KM_PER_LAP).toFixed(2)}</td> {/* NEW CELL */}
                     <td className="p-3">
                       {athlete.totalTime > 0 ? formatDuration(athlete.totalTime) : '-'}
                     </td>
@@ -201,7 +215,7 @@ function DashboardPage() {
 
                   {openAthleteId === athlete._id && (
                     <tr>
-                      <td colSpan={7} className="p-3 bg-gray-50">
+                      <td colSpan={8} className="p-3 bg-gray-50">
                         <div className="overflow-x-auto">
                           <table className="w-full table-auto text-sm">
                             <thead className="bg-gray-100 text-left">
