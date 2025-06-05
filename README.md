@@ -17,54 +17,44 @@ UltraKeeper is a complete lap registration system for backyard ultra races. It l
 
 ## 🚀 Setup Instructions (Windows/macOS)
 
-### 1. Install Docker Desktop
+### 1. Install Docker Desktop and Git
 
 * Download: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 * During installation, check the option to **"Use Windows containers"** if asked (not required on macOS).
-
+* Download: https://git-scm.com/downloads/win
+*Select "Git from the command line and also from 3rd-party software" when prompted.
 ---
 
 ### 2. Download UltraKeeper
 
-Option A: **Download ZIP**
+Open "Docker desktop"
 
-* Go to: [https://github.com/MikaelStoen/ultrakeeper](https://github.com/MikaelStoen/ultrakeeper)
-* Click **"Code" > "Download ZIP"**, then unzip it somewhere (e.g. `Documents/ultrakeeper`)
+Open "Powershell" or "Terminal", copy and paste one line below at a time, press enter between.
 
-Option B: **Use Git (for developers)**
 
 ```bash
+git --version
+```
+Check that it shows some version number, if not, try to uninstall git and reinstall.
+
+then:
+
+```bash
+cd "$env:USERPROFILE\Documents"
 git clone https://github.com/MikaelStoen/ultrakeeper.git
 cd ultrakeeper
+docker compose up
 ```
 
----
-
-### 3. Start the App
-
-#### Windows
-
-1. Press `Win + R`, type `powershell`, hit Enter
-2. Run:
-
-```powershell
-cd "C:\Users\YourName\Documents\ultrakeeper"
-docker compose up --build
-```
-
-#### macOS
-
-1. Open Terminal
-2. Run:
+if you run into errors with the docker compose up command do: 
 
 ```bash
-cd ~/Documents/ultrakeeper
-docker compose up --build
+docker compose down
+docker compose build
+docker compose up
 ```
 
----
-
-### 4. Open the Web App
+### 3. Open the Web App
 
 Once running, visit:
 
@@ -79,6 +69,9 @@ http://localhost:3000
 To start the system after first setup:
 
 ```bash
+
+cd "$env:USERPROFILE\Documents"
+cd ultrakeeper
 docker compose up
 ```
 
@@ -88,26 +81,6 @@ To stop it:
 
 ```bash
 docker compose down
-```
-
----
-
-## 📂 Restore from Backup
-
-Backups are created every 15 minutes and stored in rotating folders (`slot0` to `slot4`).
-
-### Windows
-
-```powershell
-./restore.ps1           # restore latest
-./restore.ps1 slot2     # restore specific slot
-```
-
-### macOS/Linux
-
-```bash
-./restore.sh            # restore latest
-./restore.sh slot2      # restore specific slot
 ```
 
 ---
